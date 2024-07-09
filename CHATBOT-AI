@@ -1,0 +1,43 @@
+#include <stdio.h>
+#include <string.h>
+
+void respondToQuery(char query[]);
+
+int main() {
+    char query[256];
+
+    printf("Hello! I am a simple chatbot. Ask me something:\n");
+
+    while (1) {
+        printf("You: ");
+        fgets(query, sizeof(query), stdin);
+
+        // Remove the newline character from the input
+        query[strcspn(query, "\n")] = 0;
+
+        if (strcmp(query, "exit") == 0) {
+            printf("Goodbye!\n");
+            break;
+        }
+
+        respondToQuery(query);
+    }
+
+    return 0;
+}
+
+void respondToQuery(char query[]) {
+    if (strcmp(query, "hello") == 0) {
+        printf("Chatbot: Hi there! How can I help you today?\n");
+    } else if (strcmp(query, "how are you") == 0) {
+        printf("Chatbot: I'm just a program, so I don't have feelings, but thanks for asking!\n");
+    } else if (strcmp(query, "what is your name") == 0) {
+        printf("Chatbot: I am a simple chatbot created in C.\n");
+    } else if (strcmp(query, "what can you do") == 0) {
+        printf("Chatbot: I can respond to simple queries based on predefined rules.\n");
+    } else if (strcmp(query, "bye") == 0) {
+        printf("Chatbot: Goodbye! Have a nice day!\n");
+    } else {
+        printf("Chatbot: I'm sorry, I don't understand that.\n");
+    }
+}
