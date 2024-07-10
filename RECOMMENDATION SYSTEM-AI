@@ -1,63 +1,89 @@
 #include <stdio.h>
+#include <math.h>
 #include <string.h>
 
-#define NUM_USERS 3
-#define NUM_GENRES 5
-#define NUM_BOOKS 5
+#define USERS 5
+#define MOVIES 5
 
-// User-Genre Ratings Matrix
-int genreRatings[NUM_USERS][NUM_GENRES] = {
-    {5, 3, 4, 4, 1},
-    {3, 1, 5, 3, 2},
-    {4, 3, 4, 2, 5}
-};
 
-// Book-Genre Matrix
-int bookGenres[NUM_BOOKS][NUM_GENRES] = {
-    {1, 0, 1, 0, 1}, // Book 0 belongs to genres 0, 2, and 4
-    {0, 1, 0, 1, 0}, // Book 1 belongs to genres 1 and 3
-    {1, 1, 1, 0, 0}, // Book 2 belongs to genres 0, 1, and 2
-    {0, 0, 0, 1, 1}, // Book 3 belongs to genres 3 and 4
-    {1, 1, 0, 0, 1}  // Book 4 belongs to genres 0, 1, and 4
-};
-
-// Book titles
-const char *bookTitles[NUM_BOOKS] = {
-    "Book A",
-    "Book B",
-    "Book C",
-    "Book D",
-    "Book E"
-};
-
-// Function to recommend books based on genre preferences
-void recommendBooks(int user) {
-    float bookScores[NUM_BOOKS] = {0};
-
-    // Calculate scores for each book based on the user's genre ratings
-    for (int i = 0; i < NUM_BOOKS; i++) {
-        for (int j = 0; j < NUM_GENRES; j++) {
-            bookScores[i] += bookGenres[i][j] * genreRatings[user][j];
+double pearson_correlation(int user1[], int user2[], int size) {
+    double sum1 = 0, sum2 = 0, sum1Sq = 0, sum2Sq = 0, pSum = 0;
+    int n = 0;
+    
+    for (int i = 0; i < size; i++) {
+        if (user1[i] != 0 && user2[i] != 0) { // Only consider non-zero ratings
+            sum1 += user1[i];
+            sum2 += user2[i];
+            sum1Sq += pow(user1[i], 2);
+            sum2Sq += pow(user2[i], 2);
+            pSum += user1[i] * user2[i];
+            n++;
         }
     }
+    
+    if (n == 0) return 0;
+    
+    double num = pSum - (sum1 * sum2 / n);
+    double den = sqrt((sum1Sq - pow(sum1, 2) / n) * (sum2Sq - pow(sum2, 2) / n));
+    if (den == 0) return 0;
+    
+    return num / den;
+}
 
-    // Print book recommendations sorted by score
-    printf("Recommendations for user %d:\n", user);
-    for (int i = 0; i < NUM_BOOKS; i++) {
-        printf("%s: %.2f\n", bookTitles[i], bookScores[i]);
+
+void recommend_movies(int ratings[USERS][MOVIES], char genres[MOVIES][20], int user_index, char genre[]) {
+    double max_similarity = -1;
+    int similar_user = -1;
+    
+    for (int i = 0; i < USERS; i++) {
+        if (i != user_index) {
+            double similarity = pearson_correlation(ratings[user_index], ratings[i], MOVIES);
+            if (similarity > max_similarity) {
+                max_similarity = similarity;
+                similar_user = i;
+            }
+        }
+    }
+    
+    if (similar_user == -1) {
+        printf("No similar user found.\n");
+        return;
+    }
+    
+    printf("Recommended movies for user %d in genre %s based on user %d:\n", user_index + 1, genre, similar_user + 1);
+    for (int j = 0; j < MOVIES; j++) {
+        if (ratings[user_index][j] == 0 && ratings[similar_user][j] > 0 && strcmp(genres[j], genre) == 0) {
+            printf("Movie %d\n", j + 1);
+        }
     }
 }
 
 int main() {
-    int user = 0;
-    printf("Enter user ID (0-%d): ", NUM_USERS - 1);
-    scanf("%d", &user);
-
-    if (user >= 0 && user < NUM_USERS) {
-        recommendBooks(user);
-    } else {
-        printf("Invalid user ID.\n");
-    }
-
+    
+    int ratings[USERS][MOVIES] = {
+        {5, 3, 0, 1, 4},
+        {4, 0, 0, 1, 2},
+        {1, 1, 0, 5, 0},
+        {0, 0, 5, 4, 1},
+        {1, 0, 3, 0, 5}
+    };
+    
+    
+    char genres[MOVIES][20] = {
+        "Action",
+        "Comedy",
+        "Action",
+        "Drama",
+        "Action"
+    };
+    
+    int user_index = 0; 
+    
+    char genre[20];
+    printf("Enter a genre: ");
+    scanf("%s", genre);
+    
+    recommend_movies(ratings, genres, user_index, genre);
+    
     return 0;
 }
